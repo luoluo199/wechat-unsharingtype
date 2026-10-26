@@ -43,23 +43,22 @@ sudo ./inject_v2.sh
 
 ### 启动微信
 
-由于修改了签名，`open` 命令和 Dock 双击可能被 Gatekeeper 阻止。提供以下启动方式：
+由于修改了签名，`open` 命令和 Dock 双击会被 Gatekeeper 阻止。使用命令行启动：
 
 ```bash
-# 方式1：使用微信启动器（推荐）
-# 将「微信启动器.app」复制到 /Applications/ 后拖到 Dock，点击即可启动
-cp -R 微信启动器.app /Applications/
+# 安装全局命令（一次性）
+sudo cp start_wechat.command /usr/local/bin/wechat
 
-# 方式2：命令行
-/Applications/WeChat.app/Contents/MacOS/WeChat &
-
-# 方式3：双击启动脚本
-./start_wechat.command
+# 之后在任何终端中输入即可启动微信
+wechat
 ```
 
-### 微信启动器
+或添加 shell alias：
 
-仓库内附带 `微信启动器.app`，这是一个轻量 .app 包装器，使用微信原始图标，功能等同于命令行启动。复制到 `/Applications/` 后可拖入 Dock，点击体验与原版一致。
+```bash
+echo 'alias wechat="/Applications/WeChat.app/Contents/MacOS/WeChat &>/dev/null &"' >> ~/.zshrc
+source ~/.zshrc
+```
 
 ### 验证效果
 
@@ -86,7 +85,7 @@ sudo ./inject_v2.sh --restore
 | `unsharingtype.m` | 核心 dylib 源码，swizzle NSWindow.setSharingType |
 | `inject_v2.sh` | 注入/还原脚本 |
 | `start_wechat.command` | 微信启动脚本（绕过 Gatekeeper） |
-| `微信启动器.app/` | 微信启动器，复制到 /Applications/ 拖入 Dock 使用 |
+| `start_wechat.command` | 微信启动脚本，可安装为全局 `wechat` 命令 |
 | `capture_v2.swift` | 诊断工具：检查微信窗口的 sharingType 状态 |
 | `capture_v4.swift` | 截图工具：用 ScreenCaptureKit 截取微信窗口 |
 
