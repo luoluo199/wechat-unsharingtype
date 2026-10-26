@@ -1,0 +1,9 @@
+# 编译产物
+capture_v2
+capture_v3
+capture_v4
+capture_wechat
+*.dylib
+
+# macOS
+.DS_Store
