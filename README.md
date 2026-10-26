@@ -43,15 +43,23 @@ sudo ./inject_v2.sh
 
 ### 启动微信
 
-由于修改了签名，`open` 命令和 Dock 启动可能被 Gatekeeper 阻止。使用以下方式启动：
+由于修改了签名，`open` 命令和 Dock 双击可能被 Gatekeeper 阻止。提供以下启动方式：
 
 ```bash
-# 方式1：命令行
+# 方式1：使用微信启动器（推荐）
+# 将「微信启动器.app」复制到 /Applications/ 后拖到 Dock，点击即可启动
+cp -R 微信启动器.app /Applications/
+
+# 方式2：命令行
 /Applications/WeChat.app/Contents/MacOS/WeChat &
 
-# 方式2：双击启动脚本
+# 方式3：双击启动脚本
 ./start_wechat.command
 ```
+
+### 微信启动器
+
+仓库内附带 `微信启动器.app`，这是一个轻量 .app 包装器，使用微信原始图标，功能等同于命令行启动。复制到 `/Applications/` 后可拖入 Dock，点击体验与原版一致。
 
 ### 验证效果
 
@@ -78,6 +86,7 @@ sudo ./inject_v2.sh --restore
 | `unsharingtype.m` | 核心 dylib 源码，swizzle NSWindow.setSharingType |
 | `inject_v2.sh` | 注入/还原脚本 |
 | `start_wechat.command` | 微信启动脚本（绕过 Gatekeeper） |
+| `微信启动器.app/` | 微信启动器，复制到 /Applications/ 拖入 Dock 使用 |
 | `capture_v2.swift` | 诊断工具：检查微信窗口的 sharingType 状态 |
 | `capture_v4.swift` | 截图工具：用 ScreenCaptureKit 截取微信窗口 |
 
