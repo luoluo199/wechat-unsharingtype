@@ -1,3 +1,0 @@
-#!/bin/bash
-/Applications/WeChat.app/Contents/MacOS/WeChat &
-osascript -e 'tell application "WeChat" to activate' 2>/dev/null
