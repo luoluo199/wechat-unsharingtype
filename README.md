@@ -43,7 +43,80 @@ sudo ./inject_v2.sh
 
 ### 启动微信
 
-由于修改了签名，`open` 命令和 Dock 双击会被 Gatekeeper 阻止。使用命令行启动：
+修改签名后，Finder/Dock 双击无法直接启动微信（Gatekeeper 拦截）。提供两种方案：
+
+#### 方案一：启动器 App（推荐）
+
+将修改后的微信移到隐藏位置，创建启动器 App 替代：
+
+```bash
+# 移动修改后的微信
+sudo mv /Applications/WeChat.app /Applications/.WeChat_Patched.app
+
+# 创建启动器 App
+mkdir -p /Applications/WeChat.app/Contents/MacOS
+mkdir -p /Applications/WeChat.app/Contents/Resources
+
+# 复制图标
+cp /Applications/.WeChat_Patched.app/Contents/Resources/AppIcon.icns \
+   /Applications/WeChat.app/Contents/Resources/AppIcon.icns
+
+# 创建启动脚本
+cat > /Applications/WeChat.app/Contents/MacOS/run << 'EOF'
+#!/bin/bash
+open /path/to/打开微信.command
+EOF
+chmod +x /Applications/WeChat.app/Contents/MacOS/run
+
+# 创建 Info.plist
+cat > /Applications/WeChat.app/Contents/Info.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>run</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.local.wechat-launcher</string>
+    <key>CFBundleName</key>
+    <string>WeChat</string>
+    <key>CFBundleDisplayName</key>
+    <string>微信</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
+EOF
+```
+
+`打开微信.command` 内容：
+
+```bash
+#!/bin/bash
+/Applications/.WeChat_Patched.app/Contents/MacOS/WeChat &>/dev/null &
+disown
+
+osascript -e '
+delay 0.5
+tell application "Terminal"
+    repeat with w in windows
+        try
+            if name of w contains "打开微信" then
+                close w
+            end if
+        end try
+    end repeat
+end tell
+' &>/dev/null &
+
+exit 0
+```
+
+效果：Applications 里只有一个微信图标，点击即可启动（会短暂闪一下终端窗口后自动关闭）。
+
+#### 方案二：命令行启动
 
 ```bash
 # 安装全局命令（一次性）
@@ -51,13 +124,6 @@ sudo cp start_wechat.command /usr/local/bin/wechat
 
 # 之后在任何终端中输入即可启动微信
 wechat
-```
-
-或添加 shell alias：
-
-```bash
-echo 'alias wechat="/Applications/WeChat.app/Contents/MacOS/WeChat &>/dev/null &"' >> ~/.zshrc
-source ~/.zshrc
 ```
 
 ### 验证效果
@@ -84,8 +150,10 @@ sudo ./inject_v2.sh --restore
 |------|------|
 | `unsharingtype.m` | 核心 dylib 源码，swizzle NSWindow.setSharingType |
 | `inject_v2.sh` | 注入/还原脚本 |
-| `start_wechat.command` | 微信启动脚本（绕过 Gatekeeper） |
-| `start_wechat.command` | 微信启动脚本，可安装为全局 `wechat` 命令 |
+| `打开微信.command` | 微信启动脚本（启动器 App 用） |
+| `start_wechat.command` | 微信启动脚本（命令行用） |
+| `wrapper.m` | 启动器包装器源码（备用方案） |
+| `wechat_unshare_daemon.swift` | 守护进程源码（跨进程方案，实测不生效） |
 | `capture_v2.swift` | 诊断工具：检查微信窗口的 sharingType 状态 |
 | `capture_v4.swift` | 截图工具：用 ScreenCaptureKit 截取微信窗口 |
 
